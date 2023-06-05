@@ -6,7 +6,7 @@
 define(['N/record', 'N/log'],
   function (record, log) {
     function afterSubmit(context) { 
-      // Get the record object from the context object
+      // Get the record object from the contlincoln navigatorext object
       var customer = context.newRecord;
 
       // Get the values of the relevant fields from the customer object
