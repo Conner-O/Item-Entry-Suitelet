@@ -1,15 +1,11 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
+ * A script made to simplify the item entry process
  */
 
 
-define(['N/ui/serverWidget', 'N/record'], function (serverWidget, record) {
-
-    function onRequest(context) {
-        // Suitelet logic here
-
-    }
+define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWidget, record) {
 
     function createRecord(userInput) {
 
@@ -40,7 +36,7 @@ define(['N/ui/serverWidget', 'N/record'], function (serverWidget, record) {
 
         inventoryItem.setValue({//VARIABLE
             fieldId: 'class',
-            value: 526
+            value: userInput.class
         });
 
         inventoryItem.setValue({
@@ -159,6 +155,45 @@ define(['N/ui/serverWidget', 'N/record'], function (serverWidget, record) {
                 type: serverWidget.FieldType.TEXT,
                 label: 'External ID'
             });
+
+            var productCategoryField = form.addField({
+                id: 'custpage_class',
+                type: serverWidget.FieldType.SELECT,
+                label: 'Product Category',
+                isMandatory: true
+            });
+
+            // Load the saved search to populate the product category field
+            var savedSearchId = '2082';
+            var searchObj = search.load({
+                id: savedSearchId
+            });
+
+            var productCategoryOptions = [];
+            searchObj.run().each(function (result) {
+                var optionValue = result.getValue({
+                    name: 'Internal Id', // Replace 'Name' with the actual field name from the saved search
+                    value: 'Internal Id'
+                });
+
+                productCategoryOptions.push({
+                    value: optionValue,
+                    text: optionValue
+                });
+
+                return true;
+            });
+
+            // Add select options to the product category field
+            productCategoryField.addSelectOption({
+                value: '',
+                text: ''
+            });
+
+            for (var i = 0; i < productCategoryOptions.length; i++) {
+                var option = productCategoryOptions[i];
+                productCategoryField.addSelectOption(option);
+            }
 
             // Add a submit button to the form
             form.addSubmitButton({
