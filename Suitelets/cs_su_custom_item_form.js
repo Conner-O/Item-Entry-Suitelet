@@ -3,7 +3,7 @@
  * @NScriptType Suitelet
  */
 
-define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWidget, record) {
+define([ 'N/query','N/search', 'N/ui/serverWidget', 'N/record'], function (query, search, serverWidget, record) {
 
   function onRequest(context) {
     if (context.request.method === 'GET') {
@@ -19,15 +19,15 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
       });
 
       // Load the saved search to populate the product category field
-      var savedSearchId = '2082'; // Replace with your actual saved search internal ID
-      var searchObj = search.load({
-        id: savedSearchId
+      var productSavedSearchId = '2082'; // Replace with your actual saved search internal ID
+      var productSearchObj = search.load({
+        id: productSavedSearchId
       });
 
       var productCategoryOptions = [];
-      searchObj.run().each(function (result) {
+      productSearchObj.run().each(function (result) {
         var optionValue = result.getValue({
-          name: 'NAME' // Replace with the field name from the saved search that contains the product category values
+          name: 'Name' // Replace with the field name from the saved search that contains the product category values
         });
 
         productCategoryOptions.push({
@@ -43,46 +43,16 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         text: ''
       });
 
-      productCategoryField.addSelectOptions({
-        items: productCategoryOptions
+      productCategoryOptions.forEach(function(option) {
+        productCategoryField.addSelectOption(option);
       });
 
-      // Product Category cannot be populated using source, you must run a saved search and use that to populate the list for this
       var itemNameField = form.addField({
         id: 'custpage_itemid',
         type: serverWidget.FieldType.TEXT,
         label: 'Item Name',
         isMandatory: true
       });
-
-      var categoryField = form.addField({
-        id: 'custpage_subsidiary',
-        source: 'subsidiary',
-        type: serverWidget.FieldType.SELECT,
-        label: 'Subsidiary',
-        defaultSelected: 'Roll-Up ISU : Logistics and Support Services : Central Stores',
-        isMandatory: true
-      });
-
-      var brandField = form.addField({
-        id: 'custpage_custitem_isu_bookstore_brand',
-        type: serverWidget.FieldType.TEXT,
-        label: 'Brand',
-        isMandatory: true
-      });
-      brandField.defaultValue = 'None/Unknown';
-      log.debug('Brand Field:', brandField);
-
-      var departmentField = form.addField({
-        id: 'custpage_department',
-        type: serverWidget.FieldType.SELECT,
-        source: 'department',
-        label: 'Department',
-        defaultValue: 'LSS - Central Stores Inventory',
-        isMandatory: true
-      });
-
-      log.debug('Department Field:', departmentField);
 
       form.addSubmitButton({
         label: 'Create Item'
@@ -93,41 +63,102 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
       // Handle form submission
       var itemName = context.request.parameters.custpage_itemid;
       var category = context.request.parameters.custpage_class;
-      var brand = context.request.parameters.custpage_custitem_isu_bookstore_brand;
-      var department = context.request.parameters.custpage_department;
+      // var subsidiary = context.request.parameters.custpage_subsidiary;
+      // var custitem_isu_bookstore_brand = context.request.parameters.custpage_custitem_isu_bookstore_brand;
+      // var department = context.request.parameters.custpage_department;
+      // var preferredlocation = context.request.parameters.custpage_preferredlocation;
 
-      // Create the item record
-      var item = record.create({
-        type: record.Type.INVENTORY_ITEM,
-        isDynamic: true
-      });
 
-      item.setValue({
-        fieldId: 'itemid',
-        value: itemName
-      });
+      var sql =
+        "SELECT " +
+        "(SELECT id FROM inventoryitem WHERE name = '?') as itemId, " +
+        "(SELECT id FROM class WHERE name = '?') as categoryId " // +
+        // "(SELECT id FROM custitem_isu_bookstore_brand WHERE name = '?') as custitem_isu_bookstore_brandId, " +
+        // "(SELECT id FROM preferredlocation WHERE name = '?') as preferredlocationId, " +
+        // "(SELECT id FROM subsidiary WHERE name = '?') as subsidiaryId, " +
+        // "(SELECT id FROM department WHERE name = '?') as departmentId, ";
+      var resultSet = query.runSuiteQL({
+          query: sql,
+          params: [itemName, category] //, custitem_isu_bookstore_brand, preferredlocation, subsidiary, department]
+      }); 
 
-      item.setValue({
-        fieldId: 'class',
-        value: category
-      });
 
-      item.setValue({
-        fieldId: 'custitem_isu_bookstore_brand',
-        value: brand
-      });
+      console.log(resultSet.results);
 
-      item.setValue({
-        fieldId: 'department',
-        value: department
-      });
+      // // Create the item record
+      // var item = record.create({
+      //   type: record.Type.INVENTORY_ITEM,
+      //   isDynamic: true
+      // });
+
+      // item.setValue({
+      //   fieldId: 'subsidiary',
+      //   value: '4' //Central Stores
+      // });
+
+      // item.setValue({
+      //   fieldId: 'itemid',
+      //   value: itemName
+      // });
+
+      // item.setValue({
+      //   fieldId: 'class',
+      //   value: '309' //Random Test Product Category
+      // });
+
+      // item.setValue({
+      //   fieldId: 'custitem_isu_bookstore_brand',
+      //   value: '126' //None/Unknown
+      // });
+      
+      // item.setValue({
+      //   fieldId: 'department',
+      //   value: '101' //LSS - Central Stores Inventory
+      // });
+
+      // // item.setValue({
+      // //   fieldId: 'custitem_nsts_csic_web_oos_behavior',
+      // //   value: 'Allow back orders but display out-of-stock message'
+      // // });
+
+      // item.setValue({
+      //   fieldId: 'preferredlocation',
+      //   value: '30' //Central Stores - General Services Bldg
+      // });
+
+      // item.setValue({
+      //   fieldId: 'cogsaccount',
+      //   value: '243' //5001 Cost of Goods Sold : COGS
+      // });
+
+      // item.setValue({
+      //   fieldId: 'assetaccount',
+      //   value: '216' //1220 Inventory : Finished Goods Inventory
+      // });
+
+      // item.setValue({
+      //   fieldId: 'incomeaccount',
+      //   value: '523' //4010 Income : Revenue
+      // });
+
+      // item.setValue({
+      //   fieldId: 'gainlossaccount',
+      //   value: '814' //3210 Retained Earnings
+      // });
+
+      // item.setValue({
+      //   fieldId: 'costingmethod',
+      //   value: 'Average'
+      // });
+
+
 
       // Save the item record
-      var itemId = item.save();
+      // var itemId = item.save();
 
       // Redirect to the created item record
       context.response.sendRedirect({
-        type: 'ITEM',
+        type: record.Type.INVENTORY_ITEM,
         identifier: itemId
       });
     }
