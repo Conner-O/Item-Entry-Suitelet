@@ -19,22 +19,22 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             value: 4
         });
 
-        inventoryItem.setValue({//VARIABLE
+        inventoryItem.setValue({
             fieldId: 'itemid',
             value: userInput.itemid
         });
 
-        inventoryItem.setValue({//VARIABLE
+        inventoryItem.setValue({
             fieldId: 'externalid',
             value: userInput.externalid
         });
 
-        inventoryItem.setValue({//VARIABLE
+        inventoryItem.setValue({
             fieldId: 'cost',
-            value: '100'
+            value: userInput.cost
         });
 
-        inventoryItem.setValue({//VARIABLE
+        inventoryItem.setValue({
             fieldId: 'class',
             value: userInput.class
         });
@@ -49,55 +49,51 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             value: 101
         });
 
-        inventoryItem.setValue({ //VARIABLE
+        inventoryItem.setValue({ //VARIABLE **
             fieldId: 'pagetitle',
             value: 101
         });
         inventoryItem.setValue({ //VARIABLE
             fieldId: 'storedisplayname',
-            value: 101
+            value: userInput.storedisplayname
         });
         inventoryItem.setValue({ //VARIABLE
             fieldId: 'storedescription',
-            value: 101
+            value: userInput.storedescription
         });
-        inventoryItem.setValue({ //VARIABLE
+        inventoryItem.setValue({ //VARIABLE **
             fieldId: 'featureddescription',
-            value: 101
+            value: userInput.storedescription
         });
         inventoryItem.setValue({ //VARIABLE
             fieldId: 'vendorname',
-            value: 101
-        });
+            value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
+        }); // need to pick vendorname
         inventoryItem.setValue({ //VARIABLE
             fieldId: 'mpn',
-            value: 101
-        });
-        inventoryItem.setValue({ //VARIABLE
-            fieldId: 'upccode',
-            value: 101
+            value: userInput.mpn
         });
         inventoryItem.setValue({ //VARIABLE
             fieldId: 'custitem_pos_code_custom_label',
             value: 101
         });
         inventoryItem.setValue({ //VARIABLE
-            fieldId: 'vendorname',
-            value: 101
-        });
-        inventoryItem.setValue({ //VARIABLE
             fieldId: 'displayname',
-            value: 101
+            value: userInput.displayname
         });
         inventoryItem.setValue({ //VARIABLE
             fieldId: 'custitem_bkst_backstock1',
-            value: 101
+            value: userInput.custitem_bkst_backstock1
         });
         inventoryItem.setValue({ //VARIABLE (Enter reorder qty)
             fieldId: 'preferredstocklevel',
-            value: 101
+            value: userInput.preferredstocklevel
         });
-        inventoryItem.setValue({ //VARIABLE
+        inventoryItem.setValue({
+            fieldId: 'itemvendor',
+            value: userInput.vendor
+        });
+        inventoryItem.setValue({
             fieldId: 'reorderpoint',
             value: "T"
         });
@@ -125,7 +121,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'costingmethod',
             value: "AVG"
         });
-
+        inventoryItem.setSublistValue({
+            id: 'itemvendor',
+            line: 1,
+            value: userInput.vendor
+        });
 
         var recordId = inventoryItem.save();
 
@@ -156,6 +156,57 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 label: 'External ID'
             });
 
+            form.addField({
+                id: 'custpage_cost',
+                type: serverWidget.FieldType.FLOAT,
+                label: 'Cost'
+            });
+
+            form.addField({
+                id: 'custpage_storedisplayname',
+                type: serverWidget.FieldType.TEXT,
+                label: 'Store Dislay Name'
+            });
+
+            form.addField({
+                id: 'custpage_storedescription',
+                type: serverWidget.FieldType.TEXT,
+                label: 'Store Description'
+            });
+
+            form.addField({
+                id: 'custpage_vendor',
+                source: 'vendor',
+                type: serverWidget.FieldType.SELECT,
+                label: 'Vendor'
+            });
+
+            form.addField({
+                id: 'custpage_mpn',
+                type: serverWidget.FieldType.TEXT,
+                label: 'MPN'
+            });
+
+            form.addField({
+                id: 'custpage_displayname',
+                type: serverWidget.FieldType.TEXT,
+                label: 'Display Name'
+            });
+
+            form.addField({
+                id: 'custpage_custitem_bkst_backstock1',
+                source: '690',
+                type: serverWidget.FieldType.SELECT,
+                label: 'Location'
+            });
+
+            form.addField({
+                id: 'custpage_preferredstocklevel',
+                type: serverWidget.FieldType.TEXT,
+                label: 'Reorder Point'
+            });
+
+
             var productCategoryField = form.addField({
                 id: 'custpage_class',
                 type: serverWidget.FieldType.SELECT,
@@ -171,14 +222,16 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
             var productCategoryOptions = [];
             searchObj.run().each(function (result) {
+                var optionText = result.getValue({
+                    name: 'name', // Replace 'name' with the actual field name from the saved search
+                });
                 var optionValue = result.getValue({
-                    name: 'Internal Id', // Replace 'Name' with the actual field name from the saved search
-                    value: 'Internal Id'
+                    name: 'internalid', // Replace 'internalid' with the actual field name from the saved search
                 });
 
                 productCategoryOptions.push({
                     value: optionValue,
-                    text: optionValue
+                    text: optionText
                 });
 
                 return true;
@@ -206,7 +259,16 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         } else if (context.request.method === 'POST') {
             var userInput = {
                 itemid: context.request.parameters.custpage_itemid,
-                externalid: context.request.parameters.custpage_externalid
+                externalid: context.request.parameters.custpage_externalid,
+                class: context.request.parameters.custpage_class,
+                cost: context.request.parameters.custpage_cost,
+                storedisplayname: context.request.parameters.custpage_storedisplayname,
+                storedescription: context.request.parameters.custpage_storedescription,
+                vendor: context.request.parameters.custpage_vendor,
+                mpn: context.request.parameters.custpage_mpn,
+                displayname: context.request.parameters.custpage_custpage_displayname,
+                custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
+                preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
 
             // Pass the user input to the createRecord function
