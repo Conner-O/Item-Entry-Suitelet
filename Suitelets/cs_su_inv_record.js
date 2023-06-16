@@ -18,37 +18,30 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'subsidiary',
             value: 4
         });
-
         inventoryItem.setValue({
             fieldId: 'itemid',
             value: userInput.itemid
         });
-
         inventoryItem.setValue({
             fieldId: 'externalid',
             value: userInput.externalid
         });
-
         inventoryItem.setValue({
             fieldId: 'cost',
             value: userInput.cost
         });
-
         inventoryItem.setValue({
             fieldId: 'class',
             value: userInput.class
         });
-
         inventoryItem.setValue({
             fieldId: 'custitem_isu_bookstore_brand',
             value: 126
         });
-
         inventoryItem.setValue({
             fieldId: 'department',
             value: 101
         });
-
         inventoryItem.setValue({
             fieldId: 'pagetitle',
             value: 101
@@ -130,10 +123,28 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'vendor',
             value: '137142'
         });
-        inventoryItem.setValue({
-            fieldId: 'vendor',
-            value: '137142'
+        inventoryItem.setCurrentSublistValue({
+            sublistId: 'itemvendor',
+            fieldId: 'vendorname',
+            value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
         });
+        inventoryItem.setCurrentSublistValue({
+            sublistId: 'itemvendor',
+            fieldId: 'subsidiary',
+            value: 4
+        });
+        inventoryItem.setCurrentSublistValue({
+            sublistId: 'itemvendor',
+            fieldId: 'purchaseprice',
+            value: userInput.cost
+        });
+        inventoryItem.commitLine({
+            sublistId: 'itemvendor'
+        });
+
+        var sublist = inventoryItem.getSublist({sublistId: 'itemvendor'});
+        log.debug("SUBLIST",sublist);
+
         var recordId = inventoryItem.save();
 
         if (recordId) {
@@ -202,14 +213,13 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 type: serverWidget.FieldType.TEXT,
                 label: 'Reorder Point'
             });
-
             var productCategoryField = form.addField({
                 id: 'custpage_class',
                 type: serverWidget.FieldType.SELECT,
                 label: 'Product Category',
                 isMandatory: true
             });
-            // Load the saved search to populate the product category field
+          
             var savedSearchId = '2082';
             var searchObj = search.load({
                 id: savedSearchId
@@ -218,10 +228,10 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             var productCategoryOptions = [];
             searchObj.run().each(function (result) {
                 var optionText = result.getValue({
-                    name: 'name', // Replace 'name' with the actual field name from the saved search
+                    name: 'name', 
                 });
                 var optionValue = result.getValue({
-                    name: 'internalid', // Replace 'internalid' with the actual field name from the saved search
+                    name: 'internalid',
                 });
                 productCategoryOptions.push({
                     value: optionValue,
@@ -231,7 +241,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 return true;
             });
 
-            // Add select options to the product category field
             productCategoryField.addSelectOption({
                 value: '',
                 text: ''
@@ -242,12 +251,10 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 productCategoryField.addSelectOption(option);
             }
 
-            // Add a submit button to the form
             form.addSubmitButton({
                 label: 'Submit'
             });
 
-            // Display the form to the user
             context.response.writePage(form);
 
         } else if (context.request.method === 'POST') {
@@ -265,7 +272,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
 
-            // Pass the user input to the createRecord function
             createRecord(userInput);
             context.response.write('Record created');
         }
