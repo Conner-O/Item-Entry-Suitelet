@@ -14,14 +14,13 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             type: record.Type.INVENTORY_ITEM,
             isDynamic: true
         });
-
         inventoryItem.setValue({
             fieldId: 'subsidiary',
             value: 4
         });
         inventoryItem.setValue({
-            fieldId: 'itemid', //SKU Needs to be created
-            value: '3990590315'
+            fieldId: 'itemid',
+            value: userInput.itemid
         });
         inventoryItem.setValue({
             fieldId: 'externalid',
@@ -83,6 +82,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'preferredstocklevel',
             value: userInput.preferredstocklevel
         });
+
         inventoryItem.setValue({
             fieldId: 'reorderpoint',
             value: true
@@ -119,13 +119,29 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'preferredvendor',
             value: true
         });
-        ///
         inventoryItem.setValue({
-            fieldId: 'externalid',
-            value: "389339839"
+            fieldId: 'autoleadtime',
+            value: true
         });
-      
-
+        inventoryItem.setValue({
+            fieldId: 'autoreorderpoint',
+            value: true
+        });
+        inventoryItem.setValue({
+            fieldId: 'autopreferredstocklevel',
+            value: true
+        });
+        inventoryItem.setValue({
+            fieldId: 'vendorcode',
+            value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
+        });
+        inventoryItem.setMatrixSublistValue ({
+            sublistId: 'price',
+            fieldId: 'price',
+            column: 1,
+            line: 1,
+            value: 1.00//userInput.cost * .23 + userInput.cost
+        }); 
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
             fieldId: 'vendor',
@@ -159,7 +175,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         }
     }
 
-    function filterPopulate(form, savedSearchId, productCatId, label, name, internalId) {
+    function filterLockPop(form, savedSearchId, productCatId, label, name, internalId) {
         var optionsField = form.addField({
             id: productCatId,
             type: serverWidget.FieldType.SELECT,
@@ -205,9 +221,19 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         if (context.request.method === 'GET') {
 
             var form = serverWidget.createForm({
-                title: 'My Suitelet Form'
+                title: 'Item Entry Form'
             });
 
+            form.addField({
+                id: 'custpage_itemid',
+                type: serverWidget.FieldType.TEXT,
+                label: 'Item Name'
+            });
+            form.addField({
+                id: 'custpage_externalid',
+                type: serverWidget.FieldType.TEXT,
+                label: 'External ID'
+            });
             form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
@@ -245,44 +271,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 label: 'Reorder Point'
             });
 
-            filterPopulate(form,'2082', 'custpage_class', 'Product Category', 'name', 'internalid');
-            // var productCategoryField = form.addField({
-            //     id: 'custpage_class',
-            //     type: serverWidget.FieldType.SELECT,
-            //     label: 'Product Category',
-            //     isMandatory: true
-            // });
-
-            // var savedSearchId = '2082';
-            // var searchObj = search.load({
-            //     id: savedSearchId
-            // });
-
-            // var productCategoryOptions = [];
-            // searchObj.run().each(function (result) {
-            //     var optionText = result.getValue({
-            //         name: 'name', 
-            //     });
-            //     var optionValue = result.getValue({
-            //         name: 'internalid',
-            //     });
-            //     productCategoryOptions.push({
-            //         value: optionValue,
-            //         text: optionText
-            //     });
-
-            //     return true;
-            // });
-
-            // productCategoryField.addSelectOption({
-            //     value: '',
-            //     text: ''
-            // });
-
-            // for (var i = 0; i < productCategoryOptions.length; i++) {
-            //     var option = productCategoryOptions[i];
-            //     productCategoryField.addSelectOption(option);
-            // }
+            filterLockPop(
+                form,
+                '2082',
+                'custpage_class',
+                'Product Category',
+                'name',
+                'internalid'
+            );
 
             form.addSubmitButton({
                 label: 'Submit'
@@ -292,6 +288,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
         } else if (context.request.method === 'POST') {
             var userInput = {
+                itemid: context.request.parameters.custpage_itemid,
                 externalid: context.request.parameters.custpage_externalid,
                 class: context.request.parameters.custpage_class,
                 cost: context.request.parameters.custpage_cost,
