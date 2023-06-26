@@ -13,7 +13,7 @@ var quantityPricing = runtime.isFeatureInEffect({
 // Set the name of the Price sublist based on which features are enabled and currency type.
 // See Pricing Sublist Internal IDs for details on why this is important.
 var priceID;
-var currencyID = 'USD';
+var currencyID = 'EUR';
  
 // Set the ID for the sublist and the price field. Note that if all pricing-related features
 // are disabled, you will set the price in the rate field. See Pricing Sublist Feature Dependencies

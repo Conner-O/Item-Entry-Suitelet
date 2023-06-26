@@ -136,20 +136,23 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
         });
 
-        // You must select, set, and then commit the sublist line you want to change.
         inventoryItem.selectLine({
             sublistId: 'price',
-            line: 1
-        }); 
+            line: 0
+        });
+
         inventoryItem.setCurrentMatrixSublistValue({
             sublistId: 'price',
             fieldId: 'price',
-            column: 1,
-            value: "1"
+            column: 0,
+            value: 1000,
+            ignoreFieldChange: true,
+            fireSlavingSync: true
         });
         inventoryItem.commitLine({
             sublistId: 'price'
         });
+
 
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
