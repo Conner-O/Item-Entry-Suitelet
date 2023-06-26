@@ -135,7 +135,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'vendorcode',
             value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
         });
-
+        // Base Price
         inventoryItem.selectLine({
             sublistId: 'price',
             line: 0
@@ -145,7 +145,43 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: 1000,
+            value: 1000,  //change
+            ignoreFieldChange: true,
+            fireSlavingSync: true
+        });
+        inventoryItem.commitLine({
+            sublistId: 'price'
+        });
+
+        // Department Charge
+        inventoryItem.selectLine({
+            sublistId: 'price',
+            line: 1
+        });
+
+        inventoryItem.setCurrentMatrixSublistValue({
+            sublistId: 'price',
+            fieldId: 'price',
+            column: 0,
+            value: 1000, //change
+            ignoreFieldChange: true,
+            fireSlavingSync: true
+        });
+        inventoryItem.commitLine({
+            sublistId: 'price'
+        });
+        // Online Price
+
+        inventoryItem.selectLine({
+            sublistId: 'price',
+            line: 3
+        });
+
+        inventoryItem.setCurrentMatrixSublistValue({
+            sublistId: 'price',
+            fieldId: 'price',
+            column: 0,
+            value: 1000,  //change
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
