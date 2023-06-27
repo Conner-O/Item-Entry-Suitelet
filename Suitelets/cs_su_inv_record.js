@@ -59,10 +59,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             value: userInput.storedescription
         });
         inventoryItem.setValue({
-            fieldId: 'vendorname',
-            value: userInput.itemid + " " + userInput.displayname + " " + userInput.mpn
-        }); // this needs updating once autogenerating sku is setup
-        inventoryItem.setValue({
             fieldId: 'mpn',
             value: userInput.mpn
         });
@@ -74,6 +70,10 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'displayname',
             value: userInput.displayname
         });
+        inventoryItem.setValue({
+            fieldId: 'vendorname',
+            value: userInput.itemid + " " + userInput.displayname + " " + userInput.mpn
+        }); // this needs updating once autogenerating sku is setup
         inventoryItem.setValue({
             fieldId: 'custitem_bkst_backstock1',
             value: userInput.custitem_bkst_backstock1
@@ -145,7 +145,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: 1000,  //change
+            value: userInput.retail,  //change
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -163,7 +163,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: 1000, //change
+            value: userInput.retail, //change
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -181,14 +181,13 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: 1000,  //change
+            value: userInput.retail,  //change
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
         inventoryItem.commitLine({
             sublistId: 'price'
         });
-
 
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
@@ -238,6 +237,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
         var categoryOptions = [];
         searchObj.run().each(function (result) {
+
             var optionText = result.getValue({
                 name: name,
             });
@@ -246,7 +246,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             });
             categoryOptions.push({
                 value: optionValue,
-                text: optionText
+                text: optionText,
             });
 
             return true;
@@ -254,7 +254,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
         optionsField.addSelectOption({
             value: '',
-            text: ''
+            text: '',
         });
 
         for (var i = 0; i < categoryOptions.length; i++) {
@@ -265,8 +265,63 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
     }
 
 
+
     function onRequest(context) {
         if (context.request.method === 'GET') {
+
+            var itemSearch = search.create({
+                type: search.Type.INVENTORY_ITEM,
+                columns: [
+                    {
+                        name: 'internalid',
+                        sort: search.Sort.DESC
+                    },
+                    'name',
+                ],
+                filters: [
+                    search.createFilter({
+                        name: 'subsidiary',
+                        operator: search.Operator.ANYOF,
+                        values: [4] // Replace with the actual subsidiary ID
+                    })
+                ],
+                sort: {
+                    column: 'created',
+                    direction: search.Sort.DECENDING
+                }
+            });
+            var resultSet = itemSearch.run();
+            var firstResult = resultSet.getRange({
+                start: 0,
+                end: 1
+            });
+ 
+            nameValue = firstResult[0].getValue('name')
+
+            if (firstResult.length > 0) {
+                // Log the first result
+                log.debug({
+                    title: 'Most Recent Item Record',
+                    details: nameValue
+                });
+            } else {
+                log.debug({
+                    title: 'No results',
+                    details: 'No items found.'
+                });
+            }
+
+
+            // var skuData = JSON.parse(firstResult[0]);
+
+            // var lastSku = skuData.values.name;
+
+            // var htmlImage = form.addField({
+            //     id: 'custpage_htmlfield',
+            //     type: serverWidget.FieldType.INLINEHTML,
+            //     label: 'HTML Image'
+            // });
+            // htmlImage.defaultValue = "<p>" + lastSku + "</p>";           
 
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
@@ -286,6 +341,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
                 label: 'Cost'
+            });
+            form.addField({
+                id: 'custpage_retail',
+                type: serverWidget.FieldType.FLOAT,
+                label: 'Retail'
             });
             form.addField({
                 id: 'custpage_storedisplayname',
@@ -311,7 +371,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 id: 'custpage_custitem_bkst_backstock1',
                 source: '690',
                 type: serverWidget.FieldType.SELECT,
-                label: 'Location'
+                label: 'Location',
             });
             form.addField({
                 id: 'custpage_preferredstocklevel',
@@ -332,6 +392,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 label: 'Submit'
             });
 
+
             context.response.writePage(form);
 
         } else if (context.request.method === 'POST') {
@@ -340,6 +401,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 externalid: context.request.parameters.custpage_externalid,
                 class: context.request.parameters.custpage_class,
                 cost: context.request.parameters.custpage_cost,
+                retail: context.request.parameters.custpage_retail,
                 storedisplayname: context.request.parameters.custpage_storedisplayname,
                 storedescription: context.request.parameters.custpage_storedescription,
                 vendor: context.request.parameters.custpage_vendor,
@@ -352,6 +414,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             createRecord(userInput);
             context.response.write('Record created');
         }
+
+
     }
 
 
