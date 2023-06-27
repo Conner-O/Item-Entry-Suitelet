@@ -10,9 +10,10 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
     function createRecord(userInput, nameValue) {
 
+        nameValue = nameValue.toString();
 
         log.debug({
-            title: 'nameValue in createRecord function',
+            title: 'Decimal Check',
             details: nameValue
         });
 
@@ -26,11 +27,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'itemid',
-            value:  parseInt(nameValue)
+            value: nameValue
         });
         inventoryItem.setValue({
             fieldId: 'externalid',
-            value: parseInt(nameValue)
+            value: nameValue
         });
         inventoryItem.setValue({
             fieldId: 'cost',
@@ -54,7 +55,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'storedisplayname',
-            value: parseInt(nameValue)
+            value: userInput.displayname
         });
         inventoryItem.setValue({
             fieldId: 'storedescription',
@@ -384,7 +385,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                     title: 'Most Recent Item Record',
                     details: nameValue
                 });
-                nameValue = parseInt(firstResult[0].getValue('name')) + 1;
+                nameValue = parseInt(firstResult[0].getValue('name'),10) + 1;
 
             } else {
                 log.debug({
