@@ -8,7 +8,13 @@
 define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWidget, record) {
 
 
-    function createRecord(userInput) {
+    function createRecord(userInput, nameValue) {
+
+
+        log.debug({
+            title: 'nameValue in createRecord function',
+            details: nameValue
+        });
 
         var inventoryItem = record.create({
             type: record.Type.INVENTORY_ITEM,
@@ -20,11 +26,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'itemid',
-            value: userInput.itemid
+            value:  parseInt(nameValue)
         });
         inventoryItem.setValue({
             fieldId: 'externalid',
-            value: userInput.externalid
+            value: parseInt(nameValue)
         });
         inventoryItem.setValue({
             fieldId: 'cost',
@@ -48,7 +54,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'storedisplayname',
-            value: userInput.storedisplayname
+            value: parseInt(nameValue)
         });
         inventoryItem.setValue({
             fieldId: 'storedescription',
@@ -267,76 +273,24 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
 
     function onRequest(context) {
+        var nameValue;
+
         if (context.request.method === 'GET') {
-
-            var itemSearch = search.create({
-                type: search.Type.INVENTORY_ITEM,
-                columns: [
-                    {
-                        name: 'internalid',
-                        sort: search.Sort.DESC
-                    },
-                    'name',
-                ],
-                filters: [
-                    search.createFilter({
-                        name: 'subsidiary',
-                        operator: search.Operator.ANYOF,
-                        values: [4] // Replace with the actual subsidiary ID
-                    })
-                ],
-                sort: {
-                    column: 'created',
-                    direction: search.Sort.DECENDING
-                }
-            });
-            var resultSet = itemSearch.run();
-            var firstResult = resultSet.getRange({
-                start: 0,
-                end: 1
-            });
- 
-            nameValue = firstResult[0].getValue('name')
-
-            if (firstResult.length > 0) {
-                // Log the first result
-                log.debug({
-                    title: 'Most Recent Item Record',
-                    details: nameValue
-                });
-            } else {
-                log.debug({
-                    title: 'No results',
-                    details: 'No items found.'
-                });
-            }
-
-
-            // var skuData = JSON.parse(firstResult[0]);
-
-            // var lastSku = skuData.values.name;
-
-            // var htmlImage = form.addField({
-            //     id: 'custpage_htmlfield',
-            //     type: serverWidget.FieldType.INLINEHTML,
-            //     label: 'HTML Image'
-            // });
-            // htmlImage.defaultValue = "<p>" + lastSku + "</p>";           
 
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
             });
 
-            form.addField({
-                id: 'custpage_itemid',
-                type: serverWidget.FieldType.TEXT,
-                label: 'Item Name'
-            });
-            form.addField({
-                id: 'custpage_externalid',
-                type: serverWidget.FieldType.TEXT,
-                label: 'External ID'
-            });
+            // form.addField({
+            //     id: 'custpage_itemid',
+            //     type: serverWidget.FieldType.TEXT,
+            //     label: 'Item Name'
+            // });
+            // form.addField({
+            //     id: 'custpage_externalid',
+            //     type: serverWidget.FieldType.TEXT,
+            //     label: 'External ID'
+            // });
             form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
@@ -396,9 +350,52 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             context.response.writePage(form);
 
         } else if (context.request.method === 'POST') {
+
+            var itemSearch = search.create({
+                type: search.Type.INVENTORY_ITEM,
+                columns: [
+                    {
+                        name: 'internalid',
+                        sort: search.Sort.DESC
+                    },
+                    'name',
+                ],
+                filters: [
+                    search.createFilter({
+                        name: 'subsidiary',
+                        operator: search.Operator.ANYOF,
+                        values: [4] // Replace with the actual subsidiary ID
+                    })
+                ],
+                sort: {
+                    column: 'created',
+                    direction: search.Sort.DECENDING
+                }
+            });
+            var resultSet = itemSearch.run();
+            var firstResult = resultSet.getRange({
+                start: 0,
+                end: 1
+            });
+
+            if (firstResult.length > 0) {
+                // Log the first result
+                log.debug({
+                    title: 'Most Recent Item Record',
+                    details: nameValue
+                });
+                nameValue = parseInt(firstResult[0].getValue('name')) + 1;
+
+            } else {
+                log.debug({
+                    title: 'No results',
+                    details: 'No items found.'
+                });
+            }     
+
             var userInput = {
-                itemid: context.request.parameters.custpage_itemid,
-                externalid: context.request.parameters.custpage_externalid,
+                // itemid: context.request.parameters.custpage_itemid,
+                // externalid: context.request.parameters.custpage_externalid,
                 class: context.request.parameters.custpage_class,
                 cost: context.request.parameters.custpage_cost,
                 retail: context.request.parameters.custpage_retail,
@@ -411,7 +408,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
 
-            createRecord(userInput);
+
+            createRecord(userInput, nameValue);
             context.response.write('Record created');
         }
 
