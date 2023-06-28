@@ -344,7 +344,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                         name: 'internalid',
                         sort: search.Sort.DESC
                     },
-                    'storedescription', 'name'
+                    'storedescription', 'name', 'price', 'mpn', 'class', 'preferredstocklevel','custitem_bkst_backstock1'
                 ], // Add more columns as needed
                 filters: [
                     search.createFilter({
@@ -369,22 +369,38 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 start: 0,
                 end: 19
             });
-
-            var tableHtml = '<div class= "style-menu uif350 uif351 n-w-header__navigation" style="font-weight: bold; color: white; font-size: 18px; max-width: 100%; float:left;">Last Entered SKUs</div><table style="border-collapse: collapse; width: 100%;">';
+            
+            var tableHtml = '<div class="style-menu uif350 uif351 n-w-header__navigation" style="font-weight: bold; color: white; font-size: 18px; max-width: 100%; float:left;">Last Entered SKUs</div><table style="border-collapse: collapse; width: 100%;">';
             tableHtml += '<tr style="background-color: #f2f2f2; text-align: left;">';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">SKU</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Item Description</th>';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">MPN</th>';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Product Category</th>';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Location</th>';
             tableHtml += '</tr>';
-
+            
             // Process the search results
-            searchResults.forEach(function (result) {
+            searchResults.forEach(function (result, index) {
                 var internalId = result.getValue('name');
                 var itemName = result.getValue('storedescription');
-
-                // Build the table rows
-                tableHtml += '<tr><td>' + internalId + '</td><td>' + itemName + '</td></tr>';
+                var mpn = result.getValue('mpn');
+                var productCategory = result.getText('class');
+                var location = result.getText('custitem_bkst_backstock1');
+            
+                // Determine the row color based on the index
+                var rowColor = index % 2 === 0 ? '#ffffff' : '#f2f2f2';
+            
+                // Build the table rows with alternating colors
+                tableHtml += 
+                '<tr style="background-color: ' + rowColor + ';">' +
+                '<td>' + internalId + '</td>'+
+                '<td>' + itemName + '</td>'+
+                '<td>' + mpn + '</td>'+
+                '<td>' + productCategory + '</td>'+
+                '<td>' + location + '</td>'+
+                '</tr>';
             });
-
+            
             tableHtml += '</table>';
 
             var htmlField = form.addField({
@@ -465,7 +481,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
 
             createRecord(userInput, nameValue);
-            window.location.reload();
+           
         }
 
     }
