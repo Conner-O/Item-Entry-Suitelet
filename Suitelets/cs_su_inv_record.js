@@ -7,7 +7,6 @@
 
 define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWidget, record) {
 
-
     function createRecord(userInput, nameValue) {
 
         nameValue = nameValue.toString();
@@ -31,7 +30,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'externalid',
-            value: nameValue
+            value: "CS-" + nameValue
         });
         inventoryItem.setValue({
             fieldId: 'cost',
@@ -51,7 +50,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'pagetitle',
-            value: 101
+            value: userInput.displayname
         });
         inventoryItem.setValue({
             fieldId: 'storedisplayname',
@@ -71,7 +70,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'custitem_pos_code_custom_label',
-            value: 101
+            value: nameValue
         });
         inventoryItem.setValue({
             fieldId: 'displayname',
@@ -79,7 +78,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'vendorname',
-            value: userInput.itemid + " " + userInput.displayname + " " + userInput.mpn
+            value: nameValue + " " + userInput.displayname + " " + userInput.mpn
         }); // this needs updating once autogenerating sku is setup
         inventoryItem.setValue({
             fieldId: 'custitem_bkst_backstock1',
@@ -140,7 +139,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'vendorcode',
-            value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
+            value: nameValue + " " + userInput.displayname + " " + userInput.mpn
         });
         // Base Price
         inventoryItem.selectLine({
@@ -204,7 +203,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
             fieldId: 'vendorname',
-            value: userInput.externalid + " " + userInput.displayname + " " + userInput.mpn
+            value: nameValue + " " + userInput.displayname + " " + userInput.mpn
         });
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
@@ -223,7 +222,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         var recordId = inventoryItem.save();
 
         if (recordId) {
-            log.debug('Record Created', 'Record ID: ' + recordId);
+            log.debug('Record Created', 'Record ID: ' + nameValue);
         } else {
             log.error('Record Creation Failed', 'No record created');
         }
@@ -271,9 +270,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         return optionsField
     }
 
-
-
     function onRequest(context) {
+
         var nameValue;
 
         if (context.request.method === 'GET') {
@@ -282,16 +280,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 title: 'Item Entry Form'
             });
 
-            // form.addField({
-            //     id: 'custpage_itemid',
-            //     type: serverWidget.FieldType.TEXT,
-            //     label: 'Item Name'
-            // });
-            // form.addField({
-            //     id: 'custpage_externalid',
-            //     type: serverWidget.FieldType.TEXT,
-            //     label: 'External ID'
-            // });
             form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
@@ -343,10 +331,73 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 'internalid'
             );
 
+
+
             form.addSubmitButton({
                 label: 'Submit'
             });
 
+            var itemSearch = search.create({
+                type: search.Type.INVENTORY_ITEM, // Adjust the search type as per your requirement
+                columns: [
+                    {
+                        name: 'internalid',
+                        sort: search.Sort.DESC
+                    },
+                    'storedescription', 'name'
+                ], // Add more columns as needed
+                filters: [
+                    search.createFilter({
+                        name: 'subsidiary',
+                        operator: search.Operator.ANYOF,
+                        values: [4] // Replace with the actual subsidiary ID
+                    }),
+                    search.createFilter({
+                        name: 'name',
+                        operator: search.Operator.DOESNOTSTARTWITH,
+                        values: "CSSO"
+                    })
+                ], // Add any additional filters if required
+                sort: [{
+                    column: 'created',
+                    direction: search.Sort.DECENDING
+                }],
+                pageSize: 20
+            });
+
+            var searchResults = itemSearch.run().getRange({
+                start: 0,
+                end: 19
+            });
+
+            var tableHtml = '<div class= "style-menu uif350 uif351 n-w-header__navigation" style="font-weight: bold; color: white; font-size: 18px; max-width: 100%; float:left;">Last Entered SKUs</div><table style="border-collapse: collapse; width: 100%;">';
+            tableHtml += '<tr style="background-color: #f2f2f2; text-align: left;">';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">SKU</th>';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Item Description</th>';
+            tableHtml += '</tr>';
+
+            // Process the search results
+            searchResults.forEach(function (result) {
+                var internalId = result.getValue('name');
+                var itemName = result.getValue('storedescription');
+
+                // Build the table rows
+                tableHtml += '<tr><td>' + internalId + '</td><td>' + itemName + '</td></tr>';
+            });
+
+            tableHtml += '</table>';
+
+            var htmlField = form.addField({
+                id: 'custpage_html',
+                type: serverWidget.FieldType.INLINEHTML,
+                label: 'HTML Content',
+                container: 'Test'
+            });
+
+            // HTML content to be displayed
+            var htmlContent = tableHtml;
+
+            htmlField.defaultValue = htmlContent;
 
             context.response.writePage(form);
 
@@ -366,6 +417,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                         name: 'subsidiary',
                         operator: search.Operator.ANYOF,
                         values: [4] // Replace with the actual subsidiary ID
+                    }),
+                    search.createFilter({
+                        name: 'name',
+                        operator: search.Operator.DOESNOTSTARTWITH,
+                        values: "CSSO"
                     })
                 ],
                 sort: {
@@ -385,18 +441,16 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                     title: 'Most Recent Item Record',
                     details: nameValue
                 });
-                nameValue = parseInt(firstResult[0].getValue('name'),10) + 1;
+                nameValue = parseInt(firstResult[0].getValue('name'), 10) + 1;
 
             } else {
                 log.debug({
                     title: 'No results',
                     details: 'No items found.'
                 });
-            }     
+            }
 
             var userInput = {
-                // itemid: context.request.parameters.custpage_itemid,
-                // externalid: context.request.parameters.custpage_externalid,
                 class: context.request.parameters.custpage_class,
                 cost: context.request.parameters.custpage_cost,
                 retail: context.request.parameters.custpage_retail,
@@ -411,14 +465,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
 
             createRecord(userInput, nameValue);
-            context.response.write('Record created');
+            window.location.reload();
         }
 
-
     }
-
 
     return {
         onRequest: onRequest
     };
+
+
 });
