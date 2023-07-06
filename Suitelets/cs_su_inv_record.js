@@ -335,7 +335,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             });
             form.addField({
                 id: 'custpage_preferredstocklevel',
-                type: serverWidget.FieldType.TEXT,
+                type: serverWidget.FieldType.INTEGER,
                 label: 'Reorder Point'
             }); // helper that returns a form
 
@@ -347,8 +347,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 'name',
                 'internalid'
             );
-
-
 
             form.addSubmitButton({
                 label: 'Submit'
