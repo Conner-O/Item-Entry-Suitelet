@@ -89,22 +89,22 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             value: userInput.preferredstocklevel //use helper file for all inventoryItems.setValue setup thing and have it return an inventoryItem to then edit in here
         });
 
-        inventoryItem.selectLine({
-            sublistId: 'locations',
-            line: 1
-        });
+        // inventoryItem.selectLine({
+        //     sublistId: 'locations',
+        //     line: 1
+        // });
 
-        inventoryItem.setCurrentMatrixSublistValue({
-            sublistId: 'locations',
-            fieldId: 'preferredstocklevel',
-            column: 0,
-            value: userInput.preferredstocklevel,
-            ignoreFieldChange: true,
-            fireSlavingSync: true
-        });
-        inventoryItem.commitLine({
-            sublistId: 'locations'
-        });
+        // inventoryItem.setCurrentMatrixSublistValue({
+        //     sublistId: 'locations',
+        //     fieldId: 'preferredstocklevel',
+        //     column: 0,
+        //     value: userInput.preferredstocklevel,
+        //     ignoreFieldChange: true,
+        //     fireSlavingSync: true
+        // });
+        // inventoryItem.commitLine({
+        //     sublistId: 'locations'
+        // });
 
         inventoryItem.setValue({
             fieldId: 'reorderpoint',
@@ -152,12 +152,9 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'autopreferredstocklevel',
-            value: true
+            value: false
         });
-        inventoryItem.setValue({
-            fieldId: 'vendorcode',
-            value: nameValue + " " + userInput.displayname + " " + userInput.mpn
-        });
+  
         // Base Price
         inventoryItem.selectLine({
             sublistId: 'price',
@@ -216,6 +213,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'itemvendor',
             fieldId: 'vendor',
             value: '137142'
+        });
+        inventoryItem.setCurrentSublistValue({
+            sublistId: 'itemvendor',
+            fieldId: 'vendorcode',
+            value: nameValue + " " + userInput.displayname + " " + userInput.mpn
         });
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
@@ -495,7 +497,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 storedescription: context.request.parameters.custpage_storedescription,
                 vendor: context.request.parameters.custpage_vendor,
                 mpn: context.request.parameters.custpage_mpn,
-                displayname: context.request.parameters.custpage_custpage_displayname,
+                displayname: context.request.parameters.custpage_displayname,
                 custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
                 preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
