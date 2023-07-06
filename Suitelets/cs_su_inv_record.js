@@ -86,7 +86,24 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({ //WRONG ID?
             fieldId: 'preferredstocklevel',
-            value: userInput.preferredstocklevel
+            value: userInput.preferredstocklevel //use helper file for all inventoryItems.setValue setup thing and have it return an inventoryItem to then edit in here
+        });
+
+        inventoryItem.selectLine({
+            sublistId: 'locations',
+            line: 1
+        });
+
+        inventoryItem.setCurrentMatrixSublistValue({
+            sublistId: 'locations',
+            fieldId: 'preferredstocklevel',
+            column: 0,
+            value: userInput.preferredstocklevel,
+            ignoreFieldChange: true,
+            fireSlavingSync: true
+        });
+        inventoryItem.commitLine({
+            sublistId: 'locations'
         });
 
         inventoryItem.setValue({
@@ -214,7 +231,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'itemvendor',
             fieldId: 'purchaseprice',
             value: userInput.cost
-        });
+        }); // its own helper cause they all share the sublistId
         inventoryItem.commitLine({
             sublistId: 'itemvendor'
         });
@@ -236,11 +253,10 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             isMandatory: true
         });
 
-        var savedSearchId = savedSearchId;
         var searchObj = search.load({
             id: savedSearchId
         });
-
+        
         var categoryOptions = [];
         searchObj.run().each(function (result) {
 
@@ -279,7 +295,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
             });
-
             form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
@@ -320,7 +335,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 id: 'custpage_preferredstocklevel',
                 type: serverWidget.FieldType.TEXT,
                 label: 'Reorder Point'
-            });
+            }); // helper that returns a form
 
             filterLockPop(
                 form,
@@ -345,7 +360,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                         sort: search.Sort.DESC
                     },
                     'storedescription', 'name', 'price', 'mpn', 'class', 'preferredstocklevel','custitem_bkst_backstock1'
-                ], // Add more columns as needed
+                ], 
                 filters: [
                     search.createFilter({
                         name: 'subsidiary',
@@ -370,34 +385,39 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 end: 19
             });
             
+            
             var tableHtml = '<div class="style-menu uif350 uif351 n-w-header__navigation" style="font-weight: bold; color: white; font-size: 18px; max-width: 100%; float:left;">Last Entered SKUs</div><table style="border-collapse: collapse; width: 100%;">';
             tableHtml += '<tr style="background-color: #f2f2f2; text-align: left;">';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">View/Edit</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">SKU</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Item Description</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">MPN</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Product Category</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Location</th>';
+            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Reorder Point</th>';
             tableHtml += '</tr>';
-            
-            // Process the search results
+            //preferredstocklevel
+
             searchResults.forEach(function (result, index) {
+                var internalId = result.getValue('internalId');
+                var viewUrl = '/app/common/item/item.nl?id=' + internalId + '&e=T'; 
                 var internalId = result.getValue('name');
                 var itemName = result.getValue('storedescription');
                 var mpn = result.getValue('mpn');
                 var productCategory = result.getText('class');
                 var location = result.getText('custitem_bkst_backstock1');
-            
-                // Determine the row color based on the index
+                var reorder = result.getValue('preferredstocklevel');
                 var rowColor = index % 2 === 0 ? '#ffffff' : '#f2f2f2';
-            
-                // Build the table rows with alternating colors
+      
                 tableHtml += 
                 '<tr style="background-color: ' + rowColor + ';">' +
+                '<td><a href="' + viewUrl + '">Edit</a></td>' +
                 '<td>' + internalId + '</td>'+
                 '<td>' + itemName + '</td>'+
                 '<td>' + mpn + '</td>'+
                 '<td>' + productCategory + '</td>'+
                 '<td>' + location + '</td>'+
+                '<td>' + reorder + '</td>'+
                 '</tr>';
             });
             
@@ -410,7 +430,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 container: 'Test'
             });
 
-            // HTML content to be displayed
             var htmlContent = tableHtml;
 
             htmlField.defaultValue = htmlContent;
@@ -418,6 +437,9 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             context.response.writePage(form);
 
         } else if (context.request.method === 'POST') {
+
+            context.response.write('<script>window.location.href = "/app/site/hosting/scriptlet.nl?script=868&deploy=2";</script>'); //Change in prod
+
 
             var itemSearch = search.create({
                 type: search.Type.INVENTORY_ITEM,
@@ -452,7 +474,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             });
 
             if (firstResult.length > 0) {
-                // Log the first result
                 log.debug({
                     title: 'Most Recent Item Record',
                     details: nameValue
