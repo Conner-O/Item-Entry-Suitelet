@@ -154,7 +154,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'autopreferredstocklevel',
             value: false
         });
-  
+
         // Base Price
         inventoryItem.selectLine({
             sublistId: 'price',
@@ -258,7 +258,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         var searchObj = search.load({
             id: savedSearchId
         });
-        
+
         var categoryOptions = [];
         searchObj.run().each(function (result) {
 
@@ -297,16 +297,20 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
             });
-            form.addField({
+            var cost = form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
                 label: 'Cost'
             });
-            form.addField({
+
+            var retail = form.addField({
                 id: 'custpage_retail',
                 type: serverWidget.FieldType.FLOAT,
                 label: 'Retail'
             });
+
+            retail.defaultValue = 99.99;
+
             form.addField({
                 id: 'custpage_storedisplayname',
                 type: serverWidget.FieldType.TEXT,
@@ -335,7 +339,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             });
             form.addField({
                 id: 'custpage_preferredstocklevel',
-                type: serverWidget.FieldType.INTEGER,
+                type: serverWidget.FieldType.FLOAT,
                 label: 'Reorder Point'
             }); // helper that returns a form
 
@@ -359,8 +363,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                         name: 'internalid',
                         sort: search.Sort.DESC
                     },
-                    'storedescription', 'name', 'price', 'mpn', 'class', 'preferredstocklevel','custitem_bkst_backstock1'
-                ], 
+                    'storedescription', 'name', 'price', 'mpn', 'class', 'preferredstocklevel', 'custitem_bkst_backstock1'
+                ],
                 filters: [
                     search.createFilter({
                         name: 'subsidiary',
@@ -384,8 +388,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 start: 0,
                 end: 19
             });
-            
-            
+
+
             var tableHtml = '<div class="style-menu uif350 uif351 n-w-header__navigation" style="font-weight: bold; color: white; font-size: 18px; max-width: 100%; float:left;">Last Entered SKUs</div><table style="border-collapse: collapse; width: 100%;">';
             tableHtml += '<tr style="background-color: #f2f2f2; text-align: left;">';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">View/Edit</th>';
@@ -400,7 +404,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
             searchResults.forEach(function (result, index) {
                 var internalId = result.getValue('internalId');
-                var viewUrl = '/app/common/item/item.nl?id=' + internalId + '&e=T'; 
+                var viewUrl = '/app/common/item/item.nl?id=' + internalId + '&e=T';
                 var internalId = result.getValue('name');
                 var itemName = result.getValue('storedescription');
                 var mpn = result.getValue('mpn');
@@ -408,19 +412,19 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 var location = result.getText('custitem_bkst_backstock1');
                 var reorder = result.getValue('preferredstocklevel');
                 var rowColor = index % 2 === 0 ? '#ffffff' : '#f2f2f2';
-      
-                tableHtml += 
-                '<tr style="background-color: ' + rowColor + ';">' +
-                '<td><a href="' + viewUrl + '">Edit</a></td>' +
-                '<td>' + internalId + '</td>'+
-                '<td>' + itemName + '</td>'+
-                '<td>' + mpn + '</td>'+
-                '<td>' + productCategory + '</td>'+
-                '<td>' + location + '</td>'+
-                '<td>' + reorder + '</td>'+
-                '</tr>';
+
+                tableHtml +=
+                    '<tr style="background-color: ' + rowColor + ';">' +
+                    '<td><a href="' + viewUrl + '">Edit</a></td>' +
+                    '<td>' + internalId + '</td>' +
+                    '<td>' + itemName + '</td>' +
+                    '<td>' + mpn + '</td>' +
+                    '<td>' + productCategory + '</td>' +
+                    '<td>' + location + '</td>' +
+                    '<td>' + reorder + '</td>' +
+                    '</tr>';
             });
-            
+
             tableHtml += '</table>';
 
             var htmlField = form.addField({
@@ -502,7 +506,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
 
             createRecord(userInput, nameValue);
-           
+
         }
 
     }
