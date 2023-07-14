@@ -86,8 +86,9 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({ //WRONG ID?
             fieldId: 'preferredstocklevel',
-            value: userInput.preferredstocklevel //use helper file for all inventoryItems.setValue setup thing and have it return an inventoryItem to then edit in here
+            value: userInput.preferredstocklevel
         });
+
 
         // inventoryItem.selectLine({
         //     sublistId: 'locations',
@@ -289,7 +290,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
     }
 
     function onRequest(context) {
-
         var nameValue;
 
         if (context.request.method === 'GET') {
@@ -297,11 +297,13 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
             });
+
             var cost = form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
                 label: 'Cost'
             });
+
 
             var retail = form.addField({
                 id: 'custpage_retail',
@@ -309,7 +311,22 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 label: 'Retail'
             });
 
-            retail.defaultValue = 99.99;
+            var importjquery = form.addField({
+                id: 'custpage_htmlfield',
+                type: serverWidget.FieldType.INLINEHTML,
+                label: 'HTML Image'
+            });
+            importjquery.defaultValue = "<script src=\"https://code.jquery.com/jquery-latest.min.js\"></script>"
+
+            $(document).ready(function() {
+                var costCheck = context.request.parameters.custpage_cost;
+              
+                // Watch for changes in the costCheck variable
+                $(document).on('change', 'input[name="custpage_cost"]', function() {
+                    var markup = costCheck * .23 + costCheck;
+                    retail.defaultValue = markup;
+                });
+              });
 
             form.addField({
                 id: 'custpage_storedisplayname',
