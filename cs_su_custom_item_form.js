@@ -11,11 +11,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
         nameValue = nameValue.toString();
 
-        log.debug({
-            title: 'Decimal Check',
-            details: nameValue
-        });
-
         var inventoryItem = record.create({
             type: record.Type.INVENTORY_ITEM,
             isDynamic: true
@@ -84,29 +79,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'custitem_bkst_backstock1',
             value: userInput.custitem_bkst_backstock1
         });
-        inventoryItem.setValue({ //WRONG ID?
-            fieldId: 'preferredstocklevel',
-            value: userInput.preferredstocklevel
-        });
-
-
-        // inventoryItem.selectLine({
-        //     sublistId: 'locations',
-        //     line: 1
-        // });
-
-        // inventoryItem.setCurrentMatrixSublistValue({
-        //     sublistId: 'locations',
-        //     fieldId: 'preferredstocklevel',
-        //     column: 0,
-        //     value: userInput.preferredstocklevel,
-        //     ignoreFieldChange: true,
-        //     fireSlavingSync: true
-        // });
-        // inventoryItem.commitLine({
-        //     sublistId: 'locations'
-        // });
-
+  
         inventoryItem.setValue({
             fieldId: 'reorderpoint',
             value: true
@@ -162,11 +135,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             line: 0
         });
 
+        var cost = parseFloat(userInput.cost);
+        var markup = (cost * .23) + cost;
+        
         inventoryItem.setCurrentMatrixSublistValue({
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: userInput.retail,  //change
+            value: markup,  //change
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -184,7 +160,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: userInput.retail, //change
+            value: markup, 
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -202,7 +178,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: userInput.retail,  //change
+            value: markup,  
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -298,36 +274,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 title: 'Item Entry Form'
             });
 
-            var cost = form.addField({
+            form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
                 label: 'Cost'
             });
-
-
-            var retail = form.addField({
-                id: 'custpage_retail',
-                type: serverWidget.FieldType.FLOAT,
-                label: 'Retail'
-            });
-
-            var importjquery = form.addField({
-                id: 'custpage_htmlfield',
-                type: serverWidget.FieldType.INLINEHTML,
-                label: 'HTML Image'
-            });
-            importjquery.defaultValue = "<script src=\"https://code.jquery.com/jquery-latest.min.js\"></script>"
-
-            $(document).ready(function() {
-                var costCheck = context.request.parameters.custpage_cost;
-              
-                // Watch for changes in the costCheck variable
-                $(document).on('change', 'input[name="custpage_cost"]', function() {
-                    var markup = costCheck * .23 + costCheck;
-                    retail.defaultValue = markup;
-                });
-              });
-
             form.addField({
                 id: 'custpage_storedisplayname',
                 type: serverWidget.FieldType.TEXT,
@@ -354,12 +305,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 type: serverWidget.FieldType.SELECT,
                 label: 'Location',
             });
-            form.addField({
-                id: 'custpage_preferredstocklevel',
-                type: serverWidget.FieldType.FLOAT,
-                label: 'Reorder Point'
-            }); // helper that returns a form
-
+            // form.addField({
+            //     id: 'custpage_preferredstocklevel',
+            //     type: serverWidget.FieldType.FLOAT,
+            //     label: 'Reorder Point'
+            // }); 
             filterLockPop(
                 form,
                 '2082',
@@ -368,7 +318,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 'name',
                 'internalid'
             );
-
             form.addSubmitButton({
                 label: 'Submit'
             });
@@ -380,7 +329,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                         name: 'internalid',
                         sort: search.Sort.DESC
                     },
-                    'storedescription', 'name', 'price', 'mpn', 'class', 'preferredstocklevel', 'custitem_bkst_backstock1'
+                    'storedescription', 'name', 'price', 'mpn', 'class', 'preferredStockLevel', 'custitem_bkst_backstock1'
                 ],
                 filters: [
                     search.createFilter({
@@ -406,7 +355,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 end: 19
             });
 
-
             var tableHtml = '<div class="style-menu uif350 uif351 n-w-header__navigation" style="font-weight: bold; color: white; font-size: 18px; max-width: 100%; float:left;">Last Entered SKUs</div><table style="border-collapse: collapse; width: 100%;">';
             tableHtml += '<tr style="background-color: #f2f2f2; text-align: left;">';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">View/Edit</th>';
@@ -427,7 +375,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 var mpn = result.getValue('mpn');
                 var productCategory = result.getText('class');
                 var location = result.getText('custitem_bkst_backstock1');
-                var reorder = result.getValue('preferredstocklevel');
+                var reorder = result.getValue('preferredStockLevel');
                 var rowColor = index % 2 === 0 ? '#ffffff' : '#f2f2f2';
 
                 tableHtml +=
@@ -460,7 +408,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         } else if (context.request.method === 'POST') {
 
             context.response.write('<script>window.location.href = "/app/site/hosting/scriptlet.nl?script=868&deploy=2";</script>'); //Change in prod
-
 
             var itemSearch = search.create({
                 type: search.Type.INVENTORY_ITEM,
@@ -518,9 +465,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 mpn: context.request.parameters.custpage_mpn,
                 displayname: context.request.parameters.custpage_displayname,
                 custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
-                preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
+                preferredStockLevel: context.request.parameters.custpage_preferredStockLevel
             };
-
 
             createRecord(userInput, nameValue);
 
