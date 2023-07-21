@@ -79,7 +79,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             fieldId: 'custitem_bkst_backstock1',
             value: userInput.custitem_bkst_backstock1
         });
-  
         inventoryItem.setValue({
             fieldId: 'reorderpoint',
             value: true
@@ -477,6 +476,5 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
     return {
         onRequest: onRequest
     };
-
 
 });
