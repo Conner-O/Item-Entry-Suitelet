@@ -26,11 +26,12 @@ To install and use this script in your NetSuite account, follow these steps:
 3. Navigate to **Customization > Scripting > Scripts**.
 4. Click the **New** button to create a new script.
 5. Enter a name for the script (e.g., "Item Entry Suitelet").
-6. Copy the code from the `cs_su_inv_record.js` file in the repository and paste it into the script editor.
-7. Click the **Save** button to save the script.
-8. Deploy the script as a Suitelet by clicking the **Deploy** button.
-9. Configure the deployment settings according to your requirements.
-10. Click the **Save** button to deploy the script.
+6. Change the search id's in the script in accordance with your saved searches.
+7. Copy the code from the `cs_su_inv_record.js` file in the repository and paste it into the script editor.
+8. Click the **Save** button to save the script.
+9. Deploy the script as a Suitelet by clicking the **Deploy** button.
+10. Configure the deployment settings according to your requirements.
+11. Click the **Save** button to deploy the script.
 
 ## Usage
 
