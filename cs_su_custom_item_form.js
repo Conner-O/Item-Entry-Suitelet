@@ -125,7 +125,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         });
         inventoryItem.setValue({
             fieldId: 'autopreferredstocklevel',
-            value: false
+            value: true
         });
 
         // Base Price
@@ -148,13 +148,11 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         inventoryItem.commitLine({
             sublistId: 'price'
         });
-
         // Department Charge
         inventoryItem.selectLine({
             sublistId: 'price',
             line: 1
         });
-
         inventoryItem.setCurrentMatrixSublistValue({
             sublistId: 'price',
             fieldId: 'price',
@@ -172,7 +170,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             line: 3
         });
-
         inventoryItem.setCurrentMatrixSublistValue({
             sublistId: 'price',
             fieldId: 'price',
@@ -209,7 +206,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'itemvendor',
             fieldId: 'purchaseprice',
             value: userInput.cost
-        }); // its own helper cause they all share the sublistId
+        }); 
         inventoryItem.commitLine({
             sublistId: 'itemvendor'
         });
@@ -272,7 +269,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
             });
-
             form.addField({
                 id: 'custpage_cost',
                 type: serverWidget.FieldType.FLOAT,
@@ -304,11 +300,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 type: serverWidget.FieldType.SELECT,
                 label: 'Location',
             });
-            // form.addField({
-            //     id: 'custpage_preferredstocklevel',
-            //     type: serverWidget.FieldType.FLOAT,
-            //     label: 'Reorder Point'
-            // }); 
             filterLockPop(
                 form,
                 '2082',
@@ -317,6 +308,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 'name',
                 'internalid'
             );
+            
             form.addSubmitButton({
                 label: 'Submit'
             });
@@ -328,7 +320,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                         name: 'internalid',
                         sort: search.Sort.DESC
                     },
-                    'storedescription', 'name', 'price', 'mpn', 'class', 'preferredStockLevel', 'custitem_bkst_backstock1'
+                    'storedescription', 'name', 'price', 'mpn', 'class', 'custitem_bkst_backstock1'
                 ],
                 filters: [
                     search.createFilter({
@@ -362,7 +354,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">MPN</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Product Category</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Location</th>';
-            tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Reorder Point</th>';
             tableHtml += '</tr>';
             //preferredstocklevel
 
@@ -374,7 +365,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 var mpn = result.getValue('mpn');
                 var productCategory = result.getText('class');
                 var location = result.getText('custitem_bkst_backstock1');
-                var reorder = result.getValue('preferredStockLevel');
                 var rowColor = index % 2 === 0 ? '#ffffff' : '#f2f2f2';
 
                 tableHtml +=
@@ -385,7 +375,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                     '<td>' + mpn + '</td>' +
                     '<td>' + productCategory + '</td>' +
                     '<td>' + location + '</td>' +
-                    '<td>' + reorder + '</td>' +
                     '</tr>';
             });
 
@@ -464,7 +453,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 mpn: context.request.parameters.custpage_mpn,
                 displayname: context.request.parameters.custpage_displayname,
                 custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
-                preferredStockLevel: context.request.parameters.custpage_preferredStockLevel
+                preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
 
             createRecord(userInput, nameValue);
