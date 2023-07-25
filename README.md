@@ -4,7 +4,7 @@ This repository contains a Suitelet script designed to simplify the item entry p
 
 ## Features
 
-- User-friendly form for entering item details such as cost, retail price, display name, store description, MPN, product category, location, and reorder point.
+- User-friendly form for entering item details such as cost, retail price, display name, store description, MPN, product category, and location.
 - Automatic generation of SKU (Stock Keeping Unit) based on the last entered item's SKU.
 - Display of the most recently entered items in a table for easy reference.
 - Validation and error handling to ensure accurate data entry.
@@ -39,7 +39,7 @@ To use the Item Entry Suitelet, follow these steps:
 
 1. Log in to your NetSuite account.
 2. Navigate to the Suitelet's URL, which can be obtained from the deployment settings.
-3. Fill in the required item details such as cost, retail price, display name, store description, MPN, product category, location, and reorder point.
+3. Fill in the required item details such as cost, retail price, display name, store description, MPN, product category, and location.
 4. Click the **Submit** button to create a new inventory item based on the entered details.
 5. The script will generate a SKU for the item based on the last entered item's SKU.
 6. The most recently entered items will be displayed in a table for easy reference.
