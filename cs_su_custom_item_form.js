@@ -5,7 +5,7 @@
  */
 
 
-define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWidget, record) {
+define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (search, serverWidget, record, runtime) {
 
     function createRecord(userInput, nameValue) {
 
@@ -136,7 +136,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
 
         var cost = parseFloat(userInput.cost);
         var markup = (cost * .23) + cost;
-        
+
         inventoryItem.setCurrentMatrixSublistValue({
             sublistId: 'price',
             fieldId: 'price',
@@ -157,7 +157,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: markup, 
+            value: markup,
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -174,7 +174,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: markup,  
+            value: markup,
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -206,7 +206,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             sublistId: 'itemvendor',
             fieldId: 'purchaseprice',
             value: userInput.cost
-        }); 
+        });
         inventoryItem.commitLine({
             sublistId: 'itemvendor'
         });
@@ -220,26 +220,45 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         }
     }
 
-    function filterLockPop(form, savedSearchId, productCatId, label, name, internalId) {
+
+    function filterLockPop(form) {
         var optionsField = form.addField({
-            id: productCatId,
+            id: 'custpage_class',
             type: serverWidget.FieldType.SELECT,
-            label: label,
+            label: 'Product Category',
             isMandatory: true
         });
 
-        var searchObj = search.load({
-            id: savedSearchId
+        var userObj = runtime.getCurrentUser();
+
+        var userSubsidiary = userObj.subsidiary;
+
+        var itemSearch = search.create({
+            type: search.Type.CLASSIFICATION, // Adjust the search type as per your requirement
+            columns: [
+                {
+                    name: 'internalid',
+                    sort: search.Sort.DESC
+                },
+                'name'
+            ],
+            filters: [
+                search.createFilter({
+                    name: 'subsidiary',
+                    operator: search.Operator.ANYOF,
+                    values: [userSubsidiary] // Replace with the actual subsidiary ID
+                })
+            ]
         });
 
         var categoryOptions = [];
-        searchObj.run().each(function (result) {
+        itemSearch.run().each(function (result) {
 
             var optionText = result.getValue({
-                name: name,
+                name: 'name',
             });
             var optionValue = result.getValue({
-                name: internalId,
+                name: 'internalid',
             });
             categoryOptions.push({
                 value: optionValue,
@@ -260,6 +279,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
         }
         return optionsField
     }
+
 
     function onRequest(context) {
         var nameValue;
@@ -301,14 +321,9 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
                 label: 'Location',
             });
             filterLockPop(
-                form,
-                '2082',
-                'custpage_class',
-                'Product Category',
-                'name',
-                'internalid'
+                form
             );
-            
+
             form.addSubmitButton({
                 label: 'Submit'
             });
@@ -355,7 +370,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record'], function (search, serverWi
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Product Category</th>';
             tableHtml += '<th style="padding: 8px; border: 1px solid #ddd;">Location</th>';
             tableHtml += '</tr>';
-            //preferredstocklevel
 
             searchResults.forEach(function (result, index) {
                 var internalId = result.getValue('internalId');
