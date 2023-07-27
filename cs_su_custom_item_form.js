@@ -7,6 +7,12 @@
 
 define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (search, serverWidget, record, runtime) {
 
+    var userObj = runtime.getCurrentUser();
+
+    var userSubsidiary = userObj.subsidiary;
+
+    var userLocation = userObj.locationId;
+
     function createRecord(userInput, nameValue) {
 
         nameValue = nameValue.toString();
@@ -17,7 +23,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
         });
         inventoryItem.setValue({
             fieldId: 'subsidiary',
-            value: 4
+            value: userSubsidiary
         });
         inventoryItem.setValue({
             fieldId: 'itemid',
@@ -85,7 +91,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
         });
         inventoryItem.setValue({
             fieldId: 'preferredlocation',
-            value: 30
+            value: userLocation
         });
         inventoryItem.setValue({
             fieldId: 'cogsaccount',
@@ -141,7 +147,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
             sublistId: 'price',
             fieldId: 'price',
             column: 0,
-            value: markup,  //change
+            value: markup,  //Modify as needed for subsidiaries
             ignoreFieldChange: true,
             fireSlavingSync: true
         });
@@ -165,7 +171,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
             sublistId: 'price'
         });
         // Online Price
-
         inventoryItem.selectLine({
             sublistId: 'price',
             line: 3
@@ -181,7 +186,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
         inventoryItem.commitLine({
             sublistId: 'price'
         });
-
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
             fieldId: 'vendor',
@@ -221,7 +225,25 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
     }
 
 
-    function filterLockPop(form) {
+    function filterLockPop(form, searchTypeStr) {
+
+        var searchTypeStr;
+
+        switch (searchTypeStr) {
+            case 'CLASSIFICATION':
+                searchType = search.Type.CLASSIFICATION;
+                break;
+            case 'ITEM':
+                searchType = search.Type.ITEM;
+                break;
+            case 'CUSTOMER':
+                searchType = search.Type.CUSTOMER;
+                break;
+            // Add more cases for other search types if needed
+            default:
+                throw new Error('Invalid search type');
+        }
+
         var optionsField = form.addField({
             id: 'custpage_class',
             type: serverWidget.FieldType.SELECT,
@@ -229,12 +251,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
             isMandatory: true
         });
 
-        var userObj = runtime.getCurrentUser();
-
-        var userSubsidiary = userObj.subsidiary;
-
         var itemSearch = search.create({
-            type: search.Type.CLASSIFICATION, // Adjust the search type as per your requirement
+            type: searchTypeStr,
             columns: [
                 {
                     name: 'internalid',
@@ -246,7 +264,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
                 search.createFilter({
                     name: 'subsidiary',
                     operator: search.Operator.ANYOF,
-                    values: [userSubsidiary] // Replace with the actual subsidiary ID
+                    values: [userSubsidiary]
                 })
             ]
         });
@@ -321,7 +339,8 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
                 label: 'Location',
             });
             filterLockPop(
-                form
+                form,
+                'CLASSIFICATION'
             );
 
             form.addSubmitButton({
@@ -341,7 +360,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
                     search.createFilter({
                         name: 'subsidiary',
                         operator: search.Operator.ANYOF,
-                        values: [4] // Replace with the actual subsidiary ID
+                        values: [userSubsidiary]
                     }),
                     search.createFilter({
                         name: 'name',
@@ -409,7 +428,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
 
         } else if (context.request.method === 'POST') {
 
-            context.response.write('<script>window.location.href = "/app/site/hosting/scriptlet.nl?script=868&deploy=2";</script>'); //Change in prod
+            context.response.write('<script>window.location.href = "/app/site/hosting/scriptlet.nl?script=868&deploy=2";</script>'); 
 
             var itemSearch = search.create({
                 type: search.Type.INVENTORY_ITEM,
@@ -424,7 +443,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
                     search.createFilter({
                         name: 'subsidiary',
                         operator: search.Operator.ANYOF,
-                        values: [4] // Replace with the actual subsidiary ID
+                        values: [userSubsidiary] // Replace with the actual subsidiary ID
                     }),
                     search.createFilter({
                         name: 'name',
@@ -467,7 +486,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
                 mpn: context.request.parameters.custpage_mpn,
                 displayname: context.request.parameters.custpage_displayname,
                 custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
-                preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
 
             createRecord(userInput, nameValue);
