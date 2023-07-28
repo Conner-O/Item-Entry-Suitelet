@@ -189,7 +189,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
             fieldId: 'vendor',
-            value: userInput.vendor //user needs to select vendor
+            value: '137142' //user needs to select vendor
         });
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
@@ -225,24 +225,27 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
     }
 
 
-    function filterLockPop(form, fieldName, searchTypeStr) {
+    function filterLockPop(form, searchTypeStr) {
 
         var searchTypeStr;
+        var searchId;
+        var searchLabel;
 
         switch (searchTypeStr) {
             case 'CLASSIFICATION':
                 searchType = search.Type.CLASSIFICATION;
+                searchId = 'custpage_class';
+                searchLabel = 'Product Category';
                 break;
-            
             // Add more cases for other search types if needed
             default:
                 throw new Error('Invalid search type');
         }
 
         var optionsField = form.addField({
-            id: 'custpage_' + fieldName,
+            id: searchId,
             type: serverWidget.FieldType.SELECT,
-            label: 'Product Category',
+            label: searchLabel,
             isMandatory: true
         });
 
@@ -264,7 +267,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             ]
         });
 
-        var categoryOptions = [];
+        var options = [];
         itemSearch.run().each(function (result) {
 
             var optionText = result.getValue({
@@ -273,7 +276,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             var optionValue = result.getValue({
                 name: 'internalid',
             });
-            categoryOptions.push({
+            options.push({
                 value: optionValue,
                 text: optionText,
             });
@@ -286,11 +289,10 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             text: '',
         });
 
-        for (var i = 0; i < categoryOptions.length; i++) {
-            var option = categoryOptions[i];
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
             optionsField.addSelectOption(option);
         }
-
         return optionsField
     }
 
@@ -302,12 +304,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
 
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
-            });
-            form.addField({
-                id: 'custpage_vendor',
-                source: 'itemvendor',
-                type: serverWidget.FieldType.SELECT,
-                label: 'Vendor'
             });
             form.addField({
                 id: 'custpage_cost',
@@ -342,7 +338,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             });
             filterLockPop(
                 form,
-                'class',
                 'CLASSIFICATION'
             );
             form.addField({
