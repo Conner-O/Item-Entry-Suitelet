@@ -5,7 +5,7 @@
  */
 
 
-define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (search, serverWidget, record, runtime) {
+define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], function (search, serverWidget, record, runtime, file) {
 
     var userObj = runtime.getCurrentUser();
 
@@ -189,7 +189,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
             fieldId: 'vendor',
-            value: '137142'
+            value: userInput.vendor //user needs to select vendor
         });
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
@@ -225,7 +225,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
     }
 
 
-    function filterLockPop(form, searchTypeStr) {
+    function filterLockPop(form, fieldName, searchTypeStr) {
 
         var searchTypeStr;
 
@@ -233,19 +233,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
             case 'CLASSIFICATION':
                 searchType = search.Type.CLASSIFICATION;
                 break;
-            case 'ITEM':
-                searchType = search.Type.ITEM;
-                break;
-            case 'CUSTOMER':
-                searchType = search.Type.CUSTOMER;
-                break;
+            
             // Add more cases for other search types if needed
             default:
                 throw new Error('Invalid search type');
         }
 
         var optionsField = form.addField({
-            id: 'custpage_class',
+            id: 'custpage_' + fieldName,
             type: serverWidget.FieldType.SELECT,
             label: 'Product Category',
             isMandatory: true
@@ -295,6 +290,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
             var option = categoryOptions[i];
             optionsField.addSelectOption(option);
         }
+
         return optionsField
     }
 
@@ -306,6 +302,12 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
 
             var form = serverWidget.createForm({
                 title: 'Item Entry Form'
+            });
+            form.addField({
+                id: 'custpage_vendor',
+                source: 'itemvendor',
+                type: serverWidget.FieldType.SELECT,
+                label: 'Vendor'
             });
             form.addField({
                 id: 'custpage_cost',
@@ -340,8 +342,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
             });
             filterLockPop(
                 form,
+                'class',
                 'CLASSIFICATION'
             );
+            form.addField({
+                id: 'custpage_photo',
+                type: serverWidget.FieldType.FILE,
+                label: 'Upload Photo'
+            });
 
             form.addSubmitButton({
                 label: 'Submit'
@@ -428,7 +436,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
 
         } else if (context.request.method === 'POST') {
 
-            context.response.write('<script>window.location.href = "/app/site/hosting/scriptlet.nl?script=868&deploy=2";</script>'); 
+            context.response.write('<script>window.location.href = "/app/site/hosting/scriptlet.nl?script=868&deploy=2";</script>');
 
             var itemSearch = search.create({
                 type: search.Type.INVENTORY_ITEM,
@@ -488,6 +496,20 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
                 custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
             };
 
+            var fileObj = context.request.files.custpage_photo;
+            if (fileObj) {
+                var fileName = nameValue + '_01';
+                var fileType = fileObj.fileType;
+                var fileContents = fileObj.getContents();
+
+                var newFile = file.create({
+                    name: fileName,
+                    fileType: fileType,
+                    contents: fileContents,
+                    folder: 154824 //Update this with a case for each subsidiary
+                });
+                newFile.save();
+            }
             createRecord(userInput, nameValue);
 
         }
@@ -499,3 +521,5 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime'], function (sea
     };
 
 });
+
+
