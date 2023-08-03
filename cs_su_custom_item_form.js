@@ -189,7 +189,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
             fieldId: 'vendor',
-            value: '137142' //user needs to select vendor
+            value: userInput.vendor //user needs to select vendor
         });
         inventoryItem.setCurrentSublistValue({
             sublistId: 'itemvendor',
@@ -230,12 +230,26 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
         var searchTypeStr;
         var searchId;
         var searchLabel;
+        var optionTextName;
 
         switch (searchTypeStr) {
             case 'CLASSIFICATION':
                 searchType = search.Type.CLASSIFICATION;
                 searchId = 'custpage_class';
                 searchLabel = 'Product Category';
+                optionTextName = 'name'
+                break;
+            case 'COMMERCE_CATEGORY':
+                searchType = search.Type.COMMERCE_CATEGORY;
+                searchId = 'custpage_category';
+                searchLabel = 'Commerce Category';
+                optionTextName = 'name'
+                break;
+            case 'VENDOR':
+                searchType = search.Type.VENDOR;
+                searchId = 'custpage_vendor';
+                searchLabel = 'Vendor';
+                optionTextName = 'companyName'
                 break;
             // Add more cases for other search types if needed
             default:
@@ -250,28 +264,29 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
         });
 
         var itemSearch = search.create({
-            type: searchTypeStr,
+            type: searchType,
             columns: [
                 {
                     name: 'internalid',
                     sort: search.Sort.DESC
                 },
-                'name'
-            ],
-            filters: [
-                search.createFilter({
-                    name: 'subsidiary',
-                    operator: search.Operator.ANYOF,
-                    values: [userSubsidiary]
-                })
+                optionTextName
             ]
+            // ,
+            // filters: [
+            //     search.createFilter({
+            //         name: 'subsidiary',
+            //         operator: search.Operator.ANYOF,
+            //         values: [userSubsidiary]
+            //     })
+            // ],
         });
 
         var options = [];
         itemSearch.run().each(function (result) {
 
             var optionText = result.getValue({
-                name: 'name',
+                name: optionTextName,
             });
             var optionValue = result.getValue({
                 name: 'internalid',
@@ -339,6 +354,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             filterLockPop(
                 form,
                 'CLASSIFICATION'
+            );
+            filterLockPop(
+                form,
+                'COMMERCE_CATEGORY'
+            );
+            filterLockPop(
+                form,
+                'VENDOR'
             );
             form.addField({
                 id: 'custpage_photo',
@@ -480,6 +503,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             }
 
             var userInput = {
+                category: context.request.parameters.custpage_category,
                 class: context.request.parameters.custpage_class,
                 cost: context.request.parameters.custpage_cost,
                 retail: context.request.parameters.custpage_retail,
