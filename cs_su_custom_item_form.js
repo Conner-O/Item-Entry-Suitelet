@@ -237,19 +237,32 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                 searchType = search.Type.CLASSIFICATION;
                 searchId = 'custpage_class';
                 searchLabel = 'Product Category';
-                optionTextName = 'name'
+                optionTextName = 'name';
+                searchFilterName = 'subsidiary';
+                searchFilterValue = userSubsidiary;
                 break;
             case 'COMMERCE_CATEGORY':
                 searchType = search.Type.COMMERCE_CATEGORY;
                 searchId = 'custpage_category';
                 searchLabel = 'Commerce Category';
-                optionTextName = 'name'
+                optionTextName = 'name';
+                searchFilterName = 'catalog';
+                switch (userSubsidiary) {
+                    case 4:
+                        searchFilterValue = 2;
+                        break;
+                    default:
+                        searchFilterValue = 1;
+                }
+
                 break;
             case 'VENDOR':
                 searchType = search.Type.VENDOR;
                 searchId = 'custpage_vendor';
                 searchLabel = 'Vendor';
-                optionTextName = 'companyName'
+                optionTextName = 'companyName';
+                searchFilterName = 'subsidiary';
+                searchFilterValue = userSubsidiary;
                 break;
             // Add more cases for other search types if needed
             default:
@@ -272,14 +285,14 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                 },
                 optionTextName
             ]
-            // ,
-            // filters: [
-            //     search.createFilter({
-            //         name: 'subsidiary',
-            //         operator: search.Operator.ANYOF,
-            //         values: [userSubsidiary]
-            //     })
-            // ],
+            ,
+            filters: [
+                search.createFilter({
+                    name: searchFilterName,
+                    operator: search.Operator.ANYOF,
+                    values: searchFilterValue
+                })
+            ]
         });
 
         var options = [];
@@ -287,6 +300,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
 
             var optionText = result.getValue({
                 name: optionTextName,
+                sort: search.Sort.DESC
             });
             var optionValue = result.getValue({
                 name: 'internalid',
