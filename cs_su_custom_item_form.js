@@ -80,7 +80,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
         inventoryItem.setValue({
             fieldId: 'vendorname',
             value: nameValue + " " + userInput.displayname + " " + userInput.mpn
-        }); // this needs updating once autogenerating sku is setup
+        });
         inventoryItem.setValue({
             fieldId: 'custitem_bkst_backstock1',
             value: userInput.custitem_bkst_backstock1
@@ -131,8 +131,16 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
         });
         inventoryItem.setValue({
             fieldId: 'autopreferredstocklevel',
-            value: true
+            value: false
         });
+        // inventoryItem.setCurrentSublistValue({
+        //     sublistId: '30',
+        //     fieldId: 'preferredstocklevel',
+        //     value: userInput.preferredstocklevel
+        // });
+        // inventoryItem.commitLine({
+        //     sublistId: '30'
+        // });
 
         // Base Price
         inventoryItem.selectLine({
@@ -254,7 +262,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                     default:
                         searchFilterValue = 1;
                 }
-
                 break;
             case 'VENDOR':
                 searchType = search.Type.VENDOR;
@@ -281,7 +288,6 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
             columns: [
                 {
                     name: 'internalid',
-                    sort: search.Sort.DESC
                 },
                 optionTextName
             ]
@@ -290,9 +296,13 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                 search.createFilter({
                     name: searchFilterName,
                     operator: search.Operator.ANYOF,
-                    values: searchFilterValue
+                    values: searchFilterValue,
                 })
-            ]
+            ],
+            sort: [{
+                column: 'created',
+                direction: search.Sort.ASC
+            }],
         });
 
         var options = [];
@@ -300,10 +310,9 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
 
             var optionText = result.getValue({
                 name: optionTextName,
-                sort: search.Sort.DESC
             });
             var optionValue = result.getValue({
-                name: 'internalid',
+                name: 'internalid'
             });
             options.push({
                 value: optionValue,
@@ -315,7 +324,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
 
         optionsField.addSelectOption({
             value: '',
-            text: '',
+            text: ''
         });
 
         for (var i = 0; i < options.length; i++) {
@@ -359,11 +368,16 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                 type: serverWidget.FieldType.TEXT,
                 label: 'Display Name'
             });
+            // form.addField({
+            //     id: 'custpage_preferredstocklevel',
+            //     type: serverWidget.FieldType.FLOAT,
+            //     label: 'Preferred Stock Level'
+            // });
             form.addField({
                 id: 'custpage_custitem_bkst_backstock1',
                 source: '690',
                 type: serverWidget.FieldType.SELECT,
-                label: 'Location',
+                label: 'Location'
             });
             filterLockPop(
                 form,
@@ -527,6 +541,7 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                 mpn: context.request.parameters.custpage_mpn,
                 displayname: context.request.parameters.custpage_displayname,
                 custitem_bkst_backstock1: context.request.parameters.custpage_custitem_bkst_backstock1,
+                // preferredstocklevel: context.request.parameters.custpage_preferredstocklevel
             };
 
             var fileObj = context.request.files.custpage_photo;
@@ -534,12 +549,21 @@ define(['N/search', 'N/ui/serverWidget', 'N/record', 'N/runtime', 'N/file'], fun
                 var fileName = nameValue + '_01';
                 var fileType = fileObj.fileType;
                 var fileContents = fileObj.getContents();
+                var folderId;
 
+                switch (userSubsidiary) {
+                    case 4:
+                        folderId = 154824;
+                        break; //Central Stores
+                    case 2:
+                        folderId = 4526;
+                        break; //Bookstores
+                }
                 var newFile = file.create({
                     name: fileName,
                     fileType: fileType,
                     contents: fileContents,
-                    folder: 154824 //Update this with a case for each subsidiary
+                    folder: folderId
                 });
                 newFile.save();
             }
